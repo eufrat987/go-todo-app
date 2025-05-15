@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strings"
+	"os"
 )
 
 type Command int
@@ -16,6 +17,26 @@ const (
 	None
 )
 
+type Item struct {
+	done bool;
+	desc string
+}
+
+func main() {
+	displayTitle()
+	displayMenu()
+	
+	for { 
+		handleCommand(getCommand(getArg())) 
+	}
+}
+
+func displayTitle() {
+	fmt.Println("- -- -- -- -")
+	fmt.Println("* Todo App *")
+	fmt.Println("- -- -- -- -")
+}
+
 func displayMenu() {
 	fmt.Println("Commands:")
 	fmt.Println(" Add - add new task")
@@ -26,10 +47,8 @@ func displayMenu() {
 	fmt.Println(" Help - show this message")
 }
 
-func getCommand() Command {
-	var word string
-	fmt.Scan(&word)
-	
+
+func getCommand(word string) Command {
 	switch strings.ToLower(word) {
 		case "add": return Add
 		case "list": return List
@@ -41,30 +60,42 @@ func getCommand() Command {
 	}
 }
 
-func getArgIfNeeded(command Command) string {
-	if command == Delete || command == Complete {
-		var word string
-		fmt.Scan(&word)
-		return word
-	}
-	
-	return ""
+func getArg() string {
+	var word string
+	fmt.Scan(&word)
+	return word
 }
 
-func main() {
-	fmt.Println("- -- -- -- -")
-	fmt.Println("* Todo App *")
-	fmt.Println("- -- -- -- -")
-	
-	displayMenu()
-	
-	for {
-		
-		var command = getCommand()
-		// var arg = getArgIfNeeded(command)
-		
-		if command == Quit {
-			break
+func getLine() string {
+	var word string
+	fmt.Scanln(&word)
+	return word
+}
+
+func handleCommand(command Command) {
+	switch command {
+		case Add: {
+			fmt.Println("Description: ")
+			var desc = getLine()
+		}
+		case List: {
+			
+		}
+		case Delete: {
+			var id = getArg()
+		}
+		case Complete: {
+			var id = getArg()
+		}
+		case Help: {
+			displayMenu()
+		}
+		case None: {
+			fmt.Println("Unrecognized command.")
+			displayMenu()
+		}
+		case Quit: {
+			os.Exit(0)
 		}
 	}
 }

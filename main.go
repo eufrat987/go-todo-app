@@ -18,6 +18,7 @@ const (
 )
 
 type Item struct {
+	id int;
 	done bool;
 	desc string
 }
@@ -26,9 +27,20 @@ func main() {
 	displayTitle()
 	displayMenu()
 	
+	var tasks = []Item{};
+
 	for { 
-		handleCommand(getCommand(getArg())) 
+		displayEntrySign()
+		tasks = handleCommand(getCommand(getArg()), tasks)
 	}
+}
+
+func displayEntrySign() {
+		fmt.Print(">")
+}
+
+func displayDelimiter() {
+	fmt.Println("--- --- ---")
 }
 
 func displayTitle() {
@@ -72,20 +84,32 @@ func getLine() string {
 	return word
 }
 
-func handleCommand(command Command) {
+func handleCommand(command Command, tasks []Item) []Item {
 	switch command {
 		case Add: {
-			fmt.Println("Description: ")
+			fmt.Print("Description: ")
 			var desc = getLine()
+			tasks = append(tasks, Item{done: false, desc: desc, id: 1})
+
+			fmt.Println(tasks)
+			displayDelimiter()
 		}
 		case List: {
-			
+			displayDelimiter()
+
+			for _, item := range tasks {
+				fmt.Println("Id:", item.id, "Is Done:", item.done, "Description:", item.desc);
+			}
+
+			displayDelimiter()
 		}
 		case Delete: {
-			var id = getArg()
+			// var id = getArg()
+			displayDelimiter()
 		}
 		case Complete: {
-			var id = getArg()
+			// var id = getArg()
+			displayDelimiter()
 		}
 		case Help: {
 			displayMenu()
@@ -98,6 +122,8 @@ func handleCommand(command Command) {
 			os.Exit(0)
 		}
 	}
+
+	return tasks
 }
 
 /*

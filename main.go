@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"strings"
 	"os"
+	"strconv"
+	"strings"
 )
 
 type Command int
@@ -89,9 +90,7 @@ func handleCommand(command Command, tasks []Item) []Item {
 		case Add: {
 			fmt.Print("Description: ")
 			var desc = getLine()
-			tasks = append(tasks, Item{done: false, desc: desc, id: 1})
-
-			fmt.Println(tasks)
+			tasks = append(tasks, Item{done: false, desc: desc, id: generateId(tasks)})
 			displayDelimiter()
 		}
 		case List: {
@@ -104,7 +103,8 @@ func handleCommand(command Command, tasks []Item) []Item {
 			displayDelimiter()
 		}
 		case Delete: {
-			// var id = getArg()
+			var id = getArg()
+			tasks = removeByID(tasks, id);
 			displayDelimiter()
 		}
 		case Complete: {
@@ -125,6 +125,36 @@ func handleCommand(command Command, tasks []Item) []Item {
 
 	return tasks
 }
+
+func generateId(tasks []Item) int {
+	var max = 0; 
+	for _, item := range tasks {
+		if item.id > max {
+			max = item.id
+		}
+	}
+
+	return max + 1
+} 
+
+func removeByID(tasks []Item, idToRemove string) []Item {
+    for i, item := range tasks {
+        if strconv.Itoa(item.id) == idToRemove {
+            return append(tasks[:i], tasks[i+1:]...)
+        }
+    }
+    return tasks 
+}
+
+// func completeByID(tasks []Item, idToComplete string) []Item {
+// 	for i, item := range tasks {
+//         if strconv.Itoa(item.id) == idToComplete {
+// 			item.done = true
+//             // return append(tasks[:i], tasks[i+1:]...)
+//         }
+//     }
+//     return tasks
+// }
 
 /*
 Description:

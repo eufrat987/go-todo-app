@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"encoding/json"
 )
 
 type Command int
@@ -19,21 +20,57 @@ const (
 )
 
 type Item struct {
-	id int;
-	done bool;
-	desc string
+	Id int		`json "id"`
+	Done bool	`json "done"`
+	Desc string	`json "desc"`
 }
 
 func main() {
 	displayTitle()
 	displayMenu()
 	
-	var tasks = []Item{};
+	var tasks = loadFromFile()
 
 	for { 
 		displayEntrySign()
 		tasks = handleCommand(getCommand(getArg()), tasks)
+		saveToFile(tasks)
 	}
+}
+
+func saveToFile(tasks []Item) {
+	file, err := os.Create("items.json")
+	if err != nil {
+        fmt.Println("Error creating file:", err)
+        return
+    }
+    defer file.Close()
+
+	encoder := json.NewEncoder(file)
+    encoder.SetIndent("", "  ") // Pretty print
+
+    if err := encoder.Encode(tasks); err != nil {
+        fmt.Println("Error encoding JSON:", err)
+        return
+    }
+}
+
+func loadFromFile() []Item {
+	file, err := os.Open("items.json")
+    if err != nil {
+        fmt.Println("Error opening file:", err)
+        return []Item{}
+    }
+    defer file.Close()
+
+    var items []Item
+    decoder := json.NewDecoder(file)
+    if err := decoder.Decode(&items); err != nil {
+        fmt.Println("Error decoding JSON:", err)
+        return []Item{}
+    }
+
+	return items
 }
 
 func displayEntrySign() {
@@ -90,14 +127,14 @@ func handleCommand(command Command, tasks []Item) []Item {
 		case Add: {
 			fmt.Print("Description: ")
 			var desc = getLine()
-			tasks = append(tasks, Item{done: false, desc: desc, id: generateId(tasks)})
+			tasks = append(tasks, Item{Done: false, Desc: desc, Id: generateId(tasks)})
 			displayDelimiter()
 		}
 		case List: {
 			displayDelimiter()
 
 			for _, item := range tasks {
-				fmt.Println("Id:", item.id, "Is Done:", item.done, "Description:", item.desc);
+				fmt.Println("Id:", item.Id, "Is Done:", item.Done, "Description:", item.Desc);
 			}
 
 			displayDelimiter()
@@ -108,7 +145,8 @@ func handleCommand(command Command, tasks []Item) []Item {
 			displayDelimiter()
 		}
 		case Complete: {
-			// var id = getArg()
+			var id = getArg()
+			completeByID(tasks, id)
 			displayDelimiter()
 		}
 		case Help: {
@@ -129,8 +167,8 @@ func handleCommand(command Command, tasks []Item) []Item {
 func generateId(tasks []Item) int {
 	var max = 0; 
 	for _, item := range tasks {
-		if item.id > max {
-			max = item.id
+		if item.Id > max {
+			max = item.Id
 		}
 	}
 
@@ -139,22 +177,22 @@ func generateId(tasks []Item) int {
 
 func removeByID(tasks []Item, idToRemove string) []Item {
     for i, item := range tasks {
-        if strconv.Itoa(item.id) == idToRemove {
+        if strconv.Itoa(item.Id) == idToRemove {
             return append(tasks[:i], tasks[i+1:]...)
         }
     }
     return tasks 
 }
 
-// func completeByID(tasks []Item, idToComplete string) []Item {
-// 	for i, item := range tasks {
-//         if strconv.Itoa(item.id) == idToComplete {
-// 			item.done = true
-//             // return append(tasks[:i], tasks[i+1:]...)
-//         }
-//     }
-//     return tasks
-// }
+func completeByID(tasks []Item, idToComplete string) []Item {
+	for i, item := range tasks {
+        if strconv.Itoa(item.Id) == idToComplete {
+			item.Done = true
+            return append(append(tasks[:i], item), tasks[i+1:]...)
+        }
+    }
+    return tasks
+}
 
 /*
 Description:
